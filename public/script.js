@@ -8,9 +8,12 @@ submitButton.disabled = true;
 e.preventDefault()
 let requestBody = new FormData(form)
 
-console.log(requestBody.forEach((value, key) => {console.log(key, value)}))
-console.log(requestBody);
 
+
+requestBody.forEach((value, key) => {
+    if(value === 'on'){
+        console.log('true', key)
+    }
 
 fetch('/purchase', { method: 'POST', body: requestBody})
 .then(response => {
