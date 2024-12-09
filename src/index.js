@@ -150,7 +150,7 @@ app.get('/oauth2callback', (req, res) => {
 app.post("/purchase", upload, async (req, res) => {
   try {
     const name = req.body.name;
-    const ids = req.body.ids;
+    const ids = req.body.posters;
     const ph = req.body.contact;
 
     const folderId = "1YYR4LnQEhpRYoLCOuvtHvBkeZaHLPF3T"; // Your folder ID
