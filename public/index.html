@@ -1,16 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Main website</title>
-</head>
+	<meta charset="UTF-8" />
+    <title>Poster Showcase</title>
+    <link rel="stylesheet" href="styles.css" /></head>
 <body>
-	<form method="POST" action="/purchase" enctype="multipart/form-data">
-		<input type="text" name="ids">
-		<input type="text" name="name">
-		<input type="text" name="contact">
-		<input type="file" id="myFile" name="file">
-		<button type="submit">submit</button>
-	</form>
+
+	<h1>UwUcon Posters</h1>
+    <p>Check the available posters and choose your favorite ones for purchase</p>
+	
+	<form id="form" enctype="multipart/form-data">
+		
+		<fieldset class="small1">
+            <label>Enter Your Name:<br/> <input type="text" name="name" required /></label>
+            <label>Enter Your Phone number:<br/> <input type="text" name="contact" required /></label>
+        </fieldset>
+        <hr>
+
+
+
+
+
+        <fieldset class="poster-containe">
+            <div class="id01">
+                <a href=""><img class="poster" src="postersample1.png" alt=""></a>
+                <label>
+                    <input type="checkbox" name="posterid1" class="inline" /> Name01
+                </label>
+                
+            </div>
+            <div class="id01">
+                <a href=""><img class="poster" src="postersample1.png" alt=""></a>
+                <label>
+                    <input type="checkbox" name="posterid2" class="inline" /> Name02
+                </label>
+                
+            </div>
+            <div class="id01">
+                <a href=""><img class="poster" src="postersample1.png" alt=""></a>
+                <label>
+                    <input type="checkbox" name="posterid3" class="inline" /> Name03
+                </label>
+                
+            </div><div class="id01">
+                <a href=""><img class="poster" src="postersample1.png" alt=""></a>
+                <label>
+                    <input type="checkbox" name="posterid4" class="inline" /> Name04
+                </label>
+                
+            </div>
+            
+            
+        </fieldset>
+
+
+
+
+        <hr>
+        <fieldset class="small2">
+            <img src="qr.jpg" alt="QR code"><br/>
+            <span>Your total bill is Rs-30</span>
+            <label>Upload payment screenshot<input type="file" name="file" /></label>
+        </fieldset>
+		<button  type="submit" id="submit">Submit</button>	</form>
 
 </body>
 </html>
