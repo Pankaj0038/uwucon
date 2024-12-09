@@ -1,30 +1,44 @@
-const form = document.querySelector("#form")
-const submitButton = document.querySelector("#submit")
-const scriptURL = 'https://script.google.com/macros/s/AKfycbwG9vjFS-dqaZT6kKXS6r_15kub3YH2R5yw/exec'
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector("#form");
+    const submitButton = document.querySelector("#submit");
+    const scriptURL = '/';
 
+    form.addEventListener('submit', e => {
+        submitButton.disabled = true;
+        e.preventDefault(); 
 
-form.addEventListener('submit', e => {
-submitButton.disabled = true;
-e.preventDefault()
-let requestBody = new FormData(form)
+        let requestBody = new FormData();  
+        const name = form.querySelector('input[name="name"]');
+        const contact = form.querySelector('input[name="contact"]');
+        requestBody.append('name', name.value);
+        requestBody.append('contact', contact.value);
 
+        let posters = [];
 
+        const checkboxes = form.querySelectorAll('input[type="checkbox"]:checked');
+        checkboxes.forEach(checkbox => {
+            posters.push(checkbox.name); 
+        });
 
-requestBody.forEach((value, key) => {
-    if(value === 'on'){
-        console.log('true', key)
-    }
+        requestBody.append('posters', JSON.stringify(posters));
 
-fetch('/purchase', { method: 'POST', body: requestBody})
-.then(response => {
-alert('Success!', response)
-submitButton.disabled = false
-})
-.catch(error => {
-alert('Error!', error.message)
-submitButton.disabled = false
+        const fileInput = form.querySelector('input[type="file"]');
+        const file = fileInput.files[0]; 
 
-   }
-   )
-})
+        if (file) {
+            requestBody.append('file', file);
+        }
+        console.log(requestBody);
 
+        fetch(scriptURL, { method: 'POST', body: requestBody })
+            .then(response => response.json()) 
+            .then(data => {
+                alert('Success! ' + data.message); 
+                submitButton.disabled = false; 
+            })
+            .catch(error => {
+                alert('Error! ' + error.message);
+                submitButton.disabled = false; 
+    });
+});
+});
