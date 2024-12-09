@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.querySelector("#form");
     const submitButton = document.querySelector("#submit");
-    const scriptURL = '/';
+    const scriptURL = '/purchase';
 
     form.addEventListener('submit', e => {
         submitButton.disabled = true;
@@ -30,15 +30,29 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         console.log(requestBody);
 
-        fetch(scriptURL, { method: 'POST', body: requestBody })
-            .then(response => response.json()) 
-            .then(data => {
-                alert('Success! ' + data.message); 
-                submitButton.disabled = false; 
-            })
-            .catch(error => {
-                alert('Error! ' + error.message);
-                submitButton.disabled = false; 
-    });
+       // Make a POST request to the server
+		fetch(scriptURL, {
+		  method: 'POST',
+		  body: requestBody, // your form data or payload
+		})
+		  .then(response => response.json()) // Assuming server sends a JSON response with the filename
+		  .then(data => {
+		    // Get the filename from the response
+		    const filename = data.filename;
+
+		    // Construct the redirect URL
+
+		    let redirectURL = `/download?file=${filename}`;
+		    console.log(redirectURL);
+		    alert(redirectURL);
+		    // Redirect to the download URL
+		    // window.location.href = redirectURL;
+		  })
+		  .catch(error => {
+		    console.error('Error during fetch:', error);
+		  });
+
 });
+
+
 });
