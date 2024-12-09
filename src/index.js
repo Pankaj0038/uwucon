@@ -11,6 +11,8 @@ const bodyParser = require('body-parser');
 const { google } = require('googleapis');
 const fs = require('fs');
 const multer = require('multer');
+const PDFDocument = require('pdfkit');
+const blobStream = require('blob-stream');
 
 // OAuth2 Client Setup
 const { OAuth2 } = google.auth;
@@ -146,6 +148,65 @@ app.get('/oauth2callback', (req, res) => {
   });
 });
 
+
+function generateReceiptId() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let receiptId = '';
+    for (let i = 0; i < 8; i++) {
+        const randomIndex = Math.floor(Math.random() * chars.length);
+        receiptId += chars[randomIndex];
+    }
+    return receiptId;
+}
+
+function generateReceipt(name, contact, string, id) {
+  return new Promise((resolve, reject) => {
+    let totalPrice = 0;
+    const price = 30;
+    const productDetails = [];
+    const products = JSON.parse(string.replace(/'/g, '"'))
+    const filePath = path.join(__dirname, 'receipts', `receipt_${id}.pdf`);
+    const receiptsDir = path.join(__dirname, 'receipts');
+    if (!fs.existsSync(receiptsDir)) {
+      fs.mkdirSync(receiptsDir);
+    }
+
+
+    // Calculate total price and prepare product details
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];  // Get each product from the products array
+      totalPrice += parseFloat(price);  // Assuming price is constant
+      productDetails.push({ name: product, price });
+    }
+
+    // Create PDF document
+    const doc = new PDFDocument();
+    // const stream = doc.pipe(blobStream());
+    const writeStream = fs.createWriteStream(filePath);
+    doc.pipe(writeStream);
+
+    // Add receipt content to PDF
+    doc.fontSize(20).text('Receipt', { align: 'center' });
+    doc.fontSize(14).text(`Receipt ID: ${id}`, { align: 'right' });
+    doc.fontSize(14).text(`Name: ${name}`);
+    doc.text(`Contact Number: ${contact}`);
+    doc.moveDown();
+    doc.text('Products Purchased:', { underline: true });
+    productDetails.forEach(product => {
+      doc.text(`${product.name} - Rs${product.price}`);
+    });
+    doc.moveDown();
+    doc.text(`Total: Rs-${totalPrice}`, { bold: true });
+
+    // End the document
+    doc.end();
+    const filename = `receipt_${id}.pdf`
+    return filename
+    })
+}
+
+
+
 // Route for File Upload and Data Append to Sheets
 app.post("/purchase", upload, async (req, res) => {
   try {
@@ -165,6 +226,9 @@ app.post("/purchase", upload, async (req, res) => {
       try {
         fileId = await uploadFile(auth, filePath, fileName,folderId);
         console.log('File uploaded successfully with ID:', fileId);
+        const fileURI = "https://drive.google.com/file/d/"+fileId;
+
+        let receiptId = generateReceiptId();
 
         // After file upload, append data to Google Sheets
         await sheets.spreadsheets.values.append({
@@ -172,11 +236,15 @@ app.post("/purchase", upload, async (req, res) => {
           range: RANGE,
           valueInputOption: 'RAW',
           requestBody: {
-            values: [[name, ids, ph, fileId]], // Append the necessary data
+            values: [[name, ids, ph, fileURI,receiptId]], // Append the necessary data
           },
         });
-
-        res.send("Success");
+        await generateReceipt(name,ph,ids,receiptId)
+        .then(recfile=>{
+          // res.redirect(`/download?file=${recfile}`)
+          data = {"filename":recfile}
+          res.send(data);
+        })
       } catch (err) {
         console.error("Error uploading file to Google Drive:", err);
         res.status(500).send("Error uploading file.");
@@ -186,6 +254,23 @@ app.post("/purchase", upload, async (req, res) => {
     console.error("General error:", err);
     res.status(500).send("Something went wrong.");
   }
+});
+
+
+app.get('/download', (req, res) => {
+  // Define the file path you want to send for download
+  let filename = req.query.file;
+  const filePath = path.join(__dirname, 'files', fileName); // Replace 'yourfile.pdf' with your actual file
+
+  // Send the file for download
+  res.download(filePath, 'receipt.pdf', (err) => {
+    if (err) {
+      console.error('Error while downloading the file', err);
+      res.status(500).send('Error while downloading the file');
+    } else {
+      console.log('File downloaded successfully');
+    }
+  });
 });
 
 // Start the server
